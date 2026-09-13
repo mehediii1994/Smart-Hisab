@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Smart Hisab — বাজার, লাভ-ক্ষতি ও ব্যবসার হিসাব</title>
+<meta name="description" content="দৈনন্দিন বাজার-সদাই, ক্রয়-বিক্রয়, লাভ-ক্ষতি, ডিসকাউন্ট, ভ্যাট ও ব্যবসার হিসাবের জন্য অফলাইন ক্যালকুলেটর">
+<meta name="theme-color" content="#0b1330">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Baloo+Da+2:wght@500;600;700;800&family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" onerror="this.remove()">
+<style>
+:root{
+  --bg-a:#0b1330; --bg-b:#122049; --bg-c:#0e2b3a;
+  --glass:rgba(255,255,255,0.08); --glass-strong:rgba(255,255,255,0.14);
+  --glass-border:rgba(255,255,255,0.22);
+  --text:#eef2ff; --text-dim:#aab4d4; --text-faint:#7c86ac;
+  --accent:#2dd9c0; --accent-2:#f5b942; --accent-2-dim:#f5b94222;
+  --danger:#ff6b6b; --danger-dim:#ff6b6b22; --profit:#3ee08f; --profit-dim:#3ee08f1f;
+  --card-radius:22px; --btn-radius:16px;
+  --shadow:0 10px 40px -12px rgba(0,0,0,0.55);
+  --font-bn-display:'Baloo Da 2','Hind Siliguri',sans-serif;
+  --font-bn-body:'Hind Siliguri',sans-serif;
+  --font-en-display:'Manrope','Inter',sans-serif;
+  --font-en-body:'Inter',sans-serif;
+}
+[data-theme="light"]{
+  --bg-a:#eaf3f7; --bg-b:#eef1fb; --bg-c:#fbf3ec;
+  --glass:rgba(255,255,255,0.55); --glass-strong:rgba(255,255,255,0.75);
+  --glass-border:rgba(255,255,255,0.9);
+  --text:#0f1730; --text-dim:#465079; --text-faint:#7680a3;
+  --accent:#0d9e8a; --accent-2:#c9820a; --accent-2-dim:#c9820a18;
+  --danger:#d94848; --danger-dim:#d9484818; --profit:#1a9c5c; --profit-dim:#1a9c5c16;
+  --shadow:0 10px 34px -14px rgba(30,40,80,0.25);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  margin:0; min-height:100vh; color:var(--text);
+  font-family:var(--font-bn-body);
+  background:
+    radial-gradient(1200px 800px at 15% -10%, var(--bg-b), transparent 60%),
+    radial-gradient(1000px 700px at 110% 10%, var(--bg-c), transparent 55%),
+    var(--bg-a);
+  background-attachment:fixed;
+  transition:background .4s ease,color .3s ease;
+  padding-bottom:84px;
+}
+body.lang-en{ font-family:var(--font-en-body); }
+h1,h2,h3,.disp{font-family:var(--font-bn-display); font-weight:700;}
+body.lang-en h1, body.lang-en h2, body.lang-en h3, body.lang-en .disp{font-family:var(--font-en-display);}
+button, input, select{font-family:inherit;}
+::selection{background:var(--accent); color:#04231f;}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important;} }
+body.no-anim *{ transition:none !important; animation:none !important; }
+
+/* ---------- Layout shell ---------- */
+.shell{max-width:1180px; margin:0 auto; padding:0 16px;}
+header.topbar{
+  position:sticky; top:0; z-index:40; backdrop-filter:blur(18px) saturate(140%);
+  background:linear-gradient(to bottom, rgba(10,16,38,.55), rgba(10,16,38,0)); 
+}
+[data-theme="light"] header.topbar{background:linear-gradient(to bottom, rgba(255,255,255,.65), rgba(255,255,255,0));}
+.topbar-inner{max-width:1180px; margin:0 auto; padding:14px 16px; display:flex; align-items:center; gap:12px;}
+.logo-mark{
+  width:42px; height:42px; border-radius:13px; flex:none;
+  display:flex; align-items:center; justify-content:center; font-size:20px;
+  background:linear-gradient(145deg, var(--accent), #1a8f7c); color:#04231f; font-weight:800;
+  box-shadow:0 6px 18px -6px rgba(45,217,192,.6);
+}
+.brand{flex:1; min-width:0;}
+.brand h1{font-size:18px; margin:0; line-height:1.15;}
+.brand p{margin:1px 0 0; font-size:11.5px; color:var(--text-dim);}
+.topbar-actions{display:flex; gap:8px; align-items:center;}
+.icon-btn{
+  width:40px; height:40px; border-radius:13px; border:1px solid var(--glass-border);
+  background:var(--glass); color:var(--text); display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:17px; transition:transform .15s ease, background .2s ease;
+}
+.icon-btn:active{transform:scale(.9);}
+.icon-btn:hover{background:var(--glass-strong);}
+.lang-pill{
+  border:1px solid var(--glass-border); background:var(--glass); border-radius:999px;
+  padding:8px 12px; font-size:12.5px; font-weight:700; cursor:pointer; color:var(--text);
+}
+
+main{max-width:1180px; margin:0 auto; padding:14px 16px 40px;}
+
+/* ---------- Glass card ---------- */
+.glass{
+  background:var(--glass); border:1px solid var(--glass-border); border-radius:var(--card-radius);
+  backdrop-filter:blur(20px) saturate(150%); box-shadow:var(--shadow);
+}
+.section-title{font-size:14px; color:var(--text-dim); margin:22px 2px 10px; font-weight:700; letter-spacing:.02em;}
+.section-title:first-child{margin-top:4px;}
+
+/* dashboard cards */
+.grid-cards{display:grid; grid-template-columns:1fr; gap:12px;}
+@media(min-width:640px){.grid-cards{grid-template-columns:1fr 1fr;}}
+@media(min-width:960px){.grid-cards{grid-template-columns:1fr 1fr 1fr;}}
+.calc-card{
+  padding:16px; cursor:pointer; display:flex; gap:12px; align-items:center;
+  transition:transform .18s ease, background .2s ease, box-shadow .2s ease;
+}
+.calc-card:hover{transform:translateY(-3px); background:var(--glass-strong);}
+.calc-card:active{transform:scale(.98);}
+.calc-icon{
+  width:48px; height:48px; border-radius:14px; flex:none; font-size:22px;
+  display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(150deg, var(--accent-2-dim), transparent); border:1px solid var(--glass-border);
+}
+.calc-card h3{margin:0 0 2px; font-size:15px;}
+.calc-card p{margin:0; font-size:12px; color:var(--text-dim); line-height:1.35;}
+.fav-star{margin-left:auto; background:none; border:none; font-size:18px; cursor:pointer; color:var(--text-faint); flex:none;}
+.fav-star.active{color:var(--accent-2);}
+
+/* recent chips */
+.recent-row{display:flex; gap:10px; overflow-x:auto; padding-bottom:6px; -webkit-overflow-scrolling:touch;}
+.recent-chip{
+  flex:none; min-width:150px; padding:12px 14px; cursor:pointer;
+}
+.recent-chip .rc-type{font-size:11px; color:var(--text-dim); margin-bottom:4px;}
+.recent-chip .rc-res{font-size:15px; font-weight:700; color:var(--accent);}
+
+/* summary */
+.summary-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px;}
+@media(min-width:640px){.summary-grid{grid-template-columns:repeat(4,1fr);}}
+.summary-box{padding:14px; text-align:center;}
+.summary-box .val{font-size:19px; font-weight:800; font-family:var(--font-bn-display);}
+.summary-box .lbl{font-size:11px; color:var(--text-dim); margin-top:3px;}
+
+/* ---------- Calculator view ---------- */
+.calc-header{display:flex; align-items:center; gap:10px; margin-bottom:16px;}
+.back-btn{
+  width:38px; height:38px; border-radius:12px; border:1px solid var(--glass-border); background:var(--glass);
+  color:var(--text); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; flex:none;
+}
+.calc-header h2{margin:0; font-size:19px;}
+.calc-header .sub{font-size:12px; color:var(--text-dim); margin-top:2px;}
+
+.panel{padding:18px; margin-bottom:14px;}
+.field{margin-bottom:14px;}
+.field label{display:block; font-size:12.5px; color:var(--text-dim); margin-bottom:6px; font-weight:600;}
+.input-wrap{position:relative;}
+.input-wrap input, .input-wrap select{
+  width:100%; padding:13px 14px; border-radius:var(--btn-radius); border:1.5px solid var(--glass-border);
+  background:rgba(255,255,255,0.04); color:var(--text); font-size:15.5px; outline:none;
+  transition:border-color .2s ease, box-shadow .2s ease, background .2s ease;
+  appearance:none; -webkit-appearance:none;
+}
+[data-theme="light"] .input-wrap input, [data-theme="light"] .input-wrap select{background:rgba(255,255,255,.6);}
+.input-wrap input:focus, .input-wrap select:focus{
+  border-color:var(--accent); box-shadow:0 0 0 4px rgba(45,217,192,.18); background:rgba(255,255,255,0.07);
+}
+.input-wrap.err input{border-color:var(--danger); box-shadow:0 0 0 4px var(--danger-dim);}
+.err-msg{color:var(--danger); font-size:12px; margin-top:5px; display:none;}
+.input-wrap.err + .err-msg, .field .err-msg.show{display:block;}
+.field.has-unit .input-wrap{display:flex; align-items:stretch; gap:6px;}
+.field.has-unit .input-wrap input{padding-right:14px; flex:1 1 auto; min-width:0; width:auto;}
+.unit-select{position:static; flex:0 0 auto; width:auto; max-width:90px; padding:0 10px !important; border:none !important; background:var(--glass-strong) !important; border-radius:10px !important; font-size:13px !important; font-weight:600; text-align:center; text-align-last:center;}
+.row-2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+.seg{display:flex; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); border-radius:var(--btn-radius); padding:4px; gap:4px;}
+[data-theme="light"] .seg{background:rgba(255,255,255,.5);}
+.seg button{
+  flex:1; border:none; background:transparent; color:var(--text-dim); padding:10px 8px; border-radius:11px;
+  font-size:13.5px; font-weight:700; cursor:pointer; transition:all .2s ease;
+}
+.seg button.active{background:linear-gradient(150deg, var(--accent), #17a390); color:#04231f; box-shadow:0 4px 14px -4px rgba(45,217,192,.6);}
+
+.btn{
+  border:none; border-radius:var(--btn-radius); padding:13px 18px; font-size:15px; font-weight:700; cursor:pointer;
+  background:var(--glass-strong); color:var(--text); border:1px solid var(--glass-border);
+  transition:transform .12s ease, background .2s ease;
+}
+.btn:active{transform:scale(.96);}
+.btn-primary{background:linear-gradient(150deg, var(--accent-2), #c98423); color:#2a1600; border:none; box-shadow:0 8px 20px -8px rgba(245,185,66,.6);}
+.btn-ghost{background:transparent;}
+.btn-row{display:flex; gap:10px; flex-wrap:wrap;}
+.multi-discount-item{display:flex; gap:8px; align-items:center; margin-bottom:8px;}
+.multi-discount-item input{flex:1;}
+.multi-discount-item button{flex:none; width:38px; height:38px; border-radius:10px; border:1px solid var(--glass-border); background:var(--glass); color:var(--danger); cursor:pointer;}
+
+/* result card */
+.result-card{
+  padding:22px; text-align:center; position:relative; overflow:hidden;
+  background:linear-gradient(160deg, var(--accent-2-dim), var(--glass));
+  animation:resultIn .35s ease;
+}
+@keyframes resultIn{from{opacity:0; transform:translateY(10px) scale(.98);} to{opacity:1; transform:none;}}
+.result-card.loss{background:linear-gradient(160deg, var(--danger-dim), var(--glass));}
+.result-card.profit{background:linear-gradient(160deg, var(--profit-dim), var(--glass));}
+.result-label{font-size:12px; letter-spacing:.08em; color:var(--text-dim); font-weight:700; text-transform:uppercase;}
+.result-value{font-family:var(--font-bn-display); font-size:36px; font-weight:800; margin:8px 0 4px; color:var(--accent-2);}
+.result-value.loss{color:var(--danger);}
+.result-value.profit{color:var(--profit);}
+.result-sub{font-size:13px; color:var(--text-dim);}
+.result-extra{display:flex; justify-content:center; gap:18px; margin-top:14px; flex-wrap:wrap;}
+.result-extra .ex{text-align:center;}
+.result-extra .ex .v{font-size:16px; font-weight:700;}
+.result-extra .ex .l{font-size:11px; color:var(--text-dim);}
+.formula-box{margin-top:16px; padding:12px 14px; background:rgba(0,0,0,0.15); border-radius:12px; font-size:13px; text-align:left; color:var(--text-dim); font-family:monospace;}
+[data-theme="light"] .formula-box{background:rgba(0,0,0,0.05);}
+.result-actions{display:flex; gap:8px; justify-content:center; margin-top:16px; flex-wrap:wrap;}
+.result-actions button{padding:9px 14px; font-size:13px;}
+
+.example-box{margin-top:14px; font-size:12.5px; color:var(--text-dim); line-height:1.7;}
+.example-box b{color:var(--text);}
+
+/* Quick calculator */
+.qc-display{padding:22px 18px; text-align:right; margin-bottom:12px;}
+.qc-expr{font-size:14px; color:var(--text-faint); min-height:18px; word-break:break-all;}
+.qc-val{font-family:var(--font-bn-display); font-size:38px; font-weight:800; margin-top:6px; word-break:break-all;}
+.qc-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px;}
+.qc-btn{
+  aspect-ratio:1.3/1; border-radius:16px; border:1px solid var(--glass-border); background:var(--glass);
+  color:var(--text); font-size:19px; font-weight:700; cursor:pointer; transition:transform .1s ease, background .15s ease;
+}
+.qc-btn:active{transform:scale(.9); background:var(--glass-strong);}
+.qc-btn.op{color:var(--accent);}
+.qc-btn.eq{background:linear-gradient(150deg, var(--accent-2), #c98423); color:#2a1600; border:none;}
+.qc-btn.clear{color:var(--danger);}
+
+/* history */
+.hist-search{margin-bottom:12px;}
+.hist-item{padding:14px; display:flex; align-items:center; gap:12px; margin-bottom:10px;}
+.hist-item .hi-icon{width:38px; height:38px; border-radius:11px; background:var(--glass-strong); display:flex; align-items:center; justify-content:center; flex:none;}
+.hist-item .hi-main{flex:1; min-width:0;}
+.hist-item .hi-type{font-size:12px; color:var(--text-dim);}
+.hist-item .hi-res{font-size:15.5px; font-weight:700; margin-top:2px;}
+.hist-item .hi-time{font-size:10.5px; color:var(--text-faint); margin-top:2px;}
+.hist-item .hi-del{background:none; border:none; color:var(--text-faint); cursor:pointer; font-size:16px; flex:none;}
+.empty-state{text-align:center; padding:50px 20px; color:var(--text-dim);}
+.empty-state .es-icon{font-size:40px; margin-bottom:10px;}
+
+/* settings */
+.settings-row{display:flex; align-items:center; justify-content:space-between; padding:14px 4px; border-bottom:1px solid var(--glass-border);}
+.settings-row:last-child{border-bottom:none;}
+.settings-row .sr-label{font-size:14.5px; font-weight:600;}
+.settings-row .sr-sub{font-size:11.5px; color:var(--text-dim); margin-top:2px;}
+.switch{position:relative; width:48px; height:28px; flex:none;}
+.switch input{opacity:0; width:0; height:0;}
+.switch .slider{position:absolute; inset:0; background:var(--glass-strong); border:1px solid var(--glass-border); border-radius:999px; cursor:pointer; transition:.25s;}
+.switch .slider:before{content:""; position:absolute; width:20px; height:20px; left:3px; top:3px; background:var(--accent); border-radius:50%; transition:.25s;}
+.switch input:checked + .slider:before{transform:translateX(20px);}
+
+/* modal */
+.modal-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:100; display:none; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(4px);}
+.modal-backdrop.show{display:flex;}
+.modal-box{max-width:380px; width:100%; padding:24px; text-align:center; animation:resultIn .25s ease;}
+.modal-box h3{margin:0 0 10px;}
+.modal-box p{color:var(--text-dim); font-size:14px; margin:0 0 20px;}
+.modal-actions{display:flex; gap:10px;}
+.modal-actions .btn{flex:1;}
+
+/* toast */
+#toast{
+  position:fixed; bottom:96px; left:50%; transform:translateX(-50%) translateY(20px); z-index:200;
+  padding:12px 20px; border-radius:14px; font-size:13.5px; font-weight:600; opacity:0; pointer-events:none;
+  transition:all .3s ease; max-width:88vw; text-align:center;
+}
+#toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+/* bottom nav (mobile) */
+nav.bottomnav{
+  position:fixed; bottom:0; left:0; right:0; z-index:50; display:flex; padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+  backdrop-filter:blur(20px) saturate(160%); background:rgba(10,16,38,.6); border-top:1px solid var(--glass-border);
+}
+[data-theme="light"] nav.bottomnav{background:rgba(255,255,255,.7);}
+nav.bottomnav button{
+  flex:1; background:none; border:none; color:var(--text-faint); display:flex; flex-direction:column; align-items:center; gap:3px;
+  font-size:10.5px; padding:6px 2px; cursor:pointer; font-weight:600;
+}
+nav.bottomnav button .nb-icon{font-size:19px;}
+nav.bottomnav button.active{color:var(--accent);}
+@media(min-width:900px){ nav.bottomnav{display:none;} body{padding-bottom:0;} }
+
+/* sidebar (desktop) */
+.desktop-shell{display:flex; gap:20px;}
+aside.sidebar{display:none;}
+@media(min-width:900px){
+  aside.sidebar{
+    display:flex; flex-direction:column; gap:6px; width:210px; flex:none; padding:14px; height:fit-content;
+    position:sticky; top:82px;
+  }
+  aside.sidebar button{
+    display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:13px; border:none; background:none;
+    color:var(--text-dim); cursor:pointer; font-size:14px; font-weight:600; text-align:left;
+  }
+  aside.sidebar button.active{background:var(--glass-strong); color:var(--accent);}
+  .desktop-main{flex:1; min-width:0;}
+}
+
+footer.app-footer{text-align:center; padding:30px 16px 10px; color:var(--text-faint); font-size:11.5px;}
+
+/* ---------- Desktop-specific refinement ---------- */
+/* On phones: full-width stacked forms + bottom tab bar (handled above).
+   On desktop: forms become centered cards (not stretched full-width),
+   and interactive elements get hover feedback since a mouse is available. */
+.narrow-wrap{width:100%;}
+@media(min-width:900px){
+  .narrow-wrap{max-width:640px; margin:0 auto;}
+}
+@media(hover:hover) and (pointer:fine){
+  .calc-card{cursor:pointer; transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;}
+  .calc-card:hover{transform:translateY(-3px); box-shadow:0 14px 34px -14px rgba(0,0,0,.45); border-color:var(--accent);}
+  .recent-chip{cursor:pointer; transition:transform .15s ease, border-color .15s ease;}
+  .recent-chip:hover{transform:translateY(-2px); border-color:var(--accent);}
+  .hist-item{transition:border-color .15s ease;}
+  .hist-item:hover{border-color:var(--accent);}
+  .btn:not(:disabled):hover{filter:brightness(1.08);}
+  .fav-star:hover{transform:scale(1.15);}
+  aside.sidebar button:hover{background:var(--glass); color:var(--text);}
+  .calc-card, .hist-item, .recent-chip{cursor:pointer;}
+}
+
+/* Reset button */
+.reset-link{color:var(--danger); background:none; border:none; font-size:13px; font-weight:700; cursor:pointer; padding:10px;}
+
+/* utility */
+.hidden{display:none !important;}
+.mt10{margin-top:10px;}
+.flex-between{display:flex; align-items:center; justify-content:space-between;}
+</style>
+</head>
+<body data-theme="dark">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="logo-mark">৳</div>
+    <div class="brand">
+      <h1 data-i18n="appName">Smart Hisab</h1>
+      <p data-i18n="appTag">দৈনন্দিন ক্রয়-বিক্রয় ও বাজারের হিসাব</p>
+    </div>
+    <div class="topbar-actions">
+      <button class="lang-pill" id="langToggle">EN</button>
+      <button class="icon-btn" id="themeToggle" aria-label="Theme">🌙</button>
+      <button class="icon-btn" id="settingsBtn" aria-label="Settings">⚙️</button>
+    </div>
+  </div>
+</header>
+
+<div class="shell desktop-shell">
+  <aside class="sidebar glass">
+    <button data-nav="home" class="active">🏠 <span data-i18n="navHome">হোম</span></button>
+    <button data-nav="history">🕘 <span data-i18n="navHistory">হিস্টোরি</span></button>
+    <button data-nav="settings">⚙️ <span data-i18n="navSettings">সেটিংস</span></button>
+  </aside>
+  <div class="desktop-main">
+    <main id="app"></main>
+  </div>
+</div>
+
+<nav class="bottomnav">
+  <button data-nav="home" class="active"><span class="nb-icon">🏠</span><span data-i18n="navHome">হোম</span></button>
+  <button data-nav="history"><span class="nb-icon">🕘</span><span data-i18n="navHistory">হিস্টোরি</span></button>
+  <button data-nav="settings"><span class="nb-icon">⚙️</span><span data-i18n="navSettings">সেটিংস</span></button>
+</nav>
+
+<div id="toast"></div>
+
+<div class="modal-backdrop" id="resetModal">
+  <div class="modal-box glass">
+    <h3 data-i18n="resetTitle">সব কিছু রিসেট করবেন?</h3>
+    <p data-i18n="resetDesc">আপনি কি সব settings, history এবং saved data reset করতে চান? এটি ফেরত আনা যাবে না।</p>
+    <div class="modal-actions">
+      <button class="btn" id="resetCancel" data-i18n="cancel">বাতিল</button>
+      <button class="btn btn-primary" id="resetConfirm" style="background:linear-gradient(150deg,#ff8080,#c94444); color:#2a0505;" data-i18n="resetConfirm">রিসেট করুন</button>
+    </div>
+  </div>
+</div>
+
+<footer class="app-footer">
+  <div class="disp" style="font-weight:700; color:var(--text-dim);">Smart Hisab</div>
+  <div data-i18n="footerTag">দৈনন্দিন হিসাব সহজ করে তোলে।</div>
+  <div>v1.0.0</div>
+</footer>
+
+<script>
+/* ============================= I18N ============================= */
+const I18N = {
+bn:{
+  appName:"Smart Hisab", appTag:"দৈনন্দিন ক্রয়-বিক্রয় ও বাজারের হিসাব",
+  navHome:"হোম", navQuick:"ক্যালকুলেটর", navHistory:"হিস্টোরি", navSettings:"সেটিংস",
+  searchPlaceholder:"হিস্টোরি খুঁজুন...",
+  todayCalc:"আজকের হিসাব", todayProfit:"আজকের লাভ", todayLoss:"আজকের ক্ষতি", mostUsed:"সবচেয়ে বেশি ব্যবহৃত",
+  recent:"সাম্প্রতিক হিসাব", allCalculators:"সব ক্যালকুলেটর",
+  cancel:"বাতিল", resetConfirm:"রিসেট করুন", resetTitle:"সব কিছু রিসেট করবেন?",
+  resetDesc:"আপনি কি সব settings, history এবং saved data reset করতে চান? এটি ফেরত আনা যাবে না।",
+  footerTag:"দৈনন্দিন হিসাব সহজ করে তোলে।",
+  calculate:"হিসাব করুন", copy:"কপি করুন", share:"শেয়ার", print:"প্রিন্ট", copied:"কপি হয়েছে!",
+  clearAll:"সব মুছুন", noHistory:"এখনো কোনো হিসাব নেই", deleteAll:"সব মুছে ফেলুন",
+  formula:"সূত্র ও হিসাব", example:"উদাহরণ",
+  errNumber:"দয়া করে একটি বৈধ সংখ্যা দিন।", errRequired:"এই ঘরটি পূরণ করা আবশ্যক।", errZero:"মান শূন্য বা ঋণাত্মক হতে পারবে না।", errPercent:"শতাংশ ১০০ এর কম হতে হবে।",
+  settingsAppearance:"থিম", settingsLight:"লাইট মোড", settingsDark:"ডার্ক মোড", settingsSystem:"সিস্টেম অনুযায়ী",
+  settingsLanguage:"ভাষা", settingsPrecision:"দশমিক নির্ভুলতা", settingsCurrency:"মুদ্রা",
+  settingsSound:"শব্দ", settingsVibration:"ভাইব্রেশন", settingsAnimation:"অ্যানিমেশন",
+  settingsReset:"সব রিসেট করুন", settingsTitle:"সেটিংস",
+  favAdd:"পছন্দে যোগ হয়েছে", favRemove:"পছন্দ থেকে সরানো হয়েছে",
+  toastDone:"হিসাব সম্পন্ন হয়েছে",
+  m_title:"বাজার / ওজন হিসাব", m_desc:"যেকোনো পরিমাণের সঠিক দাম বের করুন",
+  m_totalPrice:"মোট দাম (৳)", m_totalQty:"মোট পরিমাণ", m_reqQty:"কত পরিমাণ কিনবেন",
+  m_resultLabel:"দাম হবে",
+  u_title:"Unit Price ক্যালকুলেটর", u_desc:"প্রতি ইউনিটের দাম বের করুন",
+  u_totalPrice:"মোট দাম (৳)", u_qty:"মোট পরিমাণ/সংখ্যা", u_resultLabel:"প্রতি একক দাম",
+  pu_title:"ক্রয় মূল্য বের করুন", pu_desc:"বিক্রয় মূল্য ও লাভ/ক্ষতি % থেকে ক্রয় মূল্য বের করুন",
+  pu_sell:"বিক্রয় মূল্য (৳)", pu_percent:"শতাংশ (%)", pu_resultLabel:"ক্রয় মূল্য",
+  se_title:"বিক্রয় মূল্য বের করুন", se_desc:"ক্রয় মূল্য ও লাভ/ক্ষতি % থেকে বিক্রয় মূল্য বের করুন",
+  se_cost:"ক্রয় মূল্য (৳)", se_percent:"শতাংশ (%)", se_resultLabel:"বিক্রয় মূল্য",
+  pl_title:"লাভ / ক্ষতি ক্যালকুলেটর", pl_desc:"ক্রয় ও বিক্রয় মূল্য থেকে লাভ বা ক্ষতি বের করুন",
+  pl_cost:"ক্রয় মূল্য (৳)", pl_sell:"বিক্রয় মূল্য (৳)", pl_profit:"লাভ", pl_loss:"ক্ষতি", pl_none:"লাভ-ক্ষতি নেই (সমান)",
+  rv_title:"Reverse Percentage ক্যালকুলেটর", rv_desc:"উল্টো দিক থেকে হিসাব বের করুন",
+  rv_mode1:"বিক্রয় মূল্য থেকে ক্রয় মূল্য", rv_mode2:"ক্রয় মূল্য থেকে বিক্রয় মূল্য",
+  rv_known:"জানা মূল্য (৳)", rv_percent:"শতাংশ (%)", rv_resultLabel:"ফলাফল",
+  mk_title:"Markup ও Profit Margin", mk_desc:"মার্কআপ ও মার্জিনের পার্থক্য বুঝুন",
+  mk_cost:"ক্রয় মূল্য (৳)", mk_mode:"হিসাবের ধরন", mk_byMarkup:"মার্কআপ % দিয়ে", mk_bySelling:"বিক্রয় মূল্য দিয়ে",
+  mk_markup:"মার্কআপ (%)", mk_sell:"বিক্রয় মূল্য (৳)",
+  mk_sellLabel:"বিক্রয় মূল্য", mk_profitLabel:"লাভ", mk_marginLabel:"Profit Margin", mk_markupLabel:"Markup %",
+  di_title:"Discount ক্যালকুলেটর", di_desc:"ছাড়ের পর চূড়ান্ত দাম বের করুন",
+  di_mode:"হিসাবের ধরন", di_forward:"মূল দাম থেকে", di_reverse:"চূড়ান্ত দাম থেকে",
+  di_original:"মূল দাম (৳)", di_final:"চূড়ান্ত দাম (৳)", di_percent:"ছাড় (%)",
+  di_resultLabel:"চূড়ান্ত দাম", di_amountLabel:"ছাড়ের পরিমাণ", di_origLabel:"মূল দাম",
+  di_multi:"একাধিক ছাড় (একটির পর একটি)", di_addDiscount:"+ আরেকটি ছাড় যোগ করুন",
+  vt_title:"VAT / Tax ক্যালকুলেটর", vt_desc:"ভ্যাট যোগ বা বিয়োগ করে হিসাব করুন",
+  vt_mode:"মূল্যে ভ্যাট", vt_excl:"অন্তর্ভুক্ত নয় (যোগ করুন)", vt_incl:"অন্তর্ভুক্ত আছে (বের করুন)",
+  vt_base:"মূল্য (৳)", vt_percent:"ভ্যাট / ট্যাক্স (%)", vt_resultLabel:"চূড়ান্ত মূল্য",
+  vt_vatLabel:"ভ্যাটের পরিমাণ", vt_baseLabel:"মূল দাম",
+  bz_title:"Business ক্যালকুলেটর", bz_desc:"সম্পূর্ণ ব্যবসার লাভ-ক্ষতি হিসাব",
+  bz_purchase:"মোট ক্রয় (৳)", bz_transport:"পরিবহন খরচ (৳)", bz_packaging:"প্যাকেজিং খরচ (৳)", bz_other:"অন্যান্য খরচ (৳)",
+  bz_totalQty:"মোট পরিমাণ/সংখ্যা", bz_sellPrice:"বিক্রয় মূল্য (প্রতি একক, ৳)", bz_qtySold:"বিক্রি হয়েছে",
+  bz_totalCost:"মোট খরচ", bz_costPerUnit:"প্রতি একক খরচ", bz_revenue:"মোট আয়", bz_grossProfit:"গ্রস প্রফিট",
+  bz_netProfit:"নেট প্রফিট", bz_profitPercent:"লাভ %", bz_remainStock:"অবশিষ্ট স্টকের মূল্য",
+  qc_title:"Quick ক্যালকুলেটর", qc_desc:"সাধারণ হিসাব-নিকাশের জন্য",
+  hist_market:"বাজার হিসাব", hist_unit:"Unit Price", hist_purchase:"ক্রয় মূল্য", hist_selling:"বিক্রয় মূল্য",
+  hist_profitloss:"লাভ/ক্ষতি", hist_reverse:"Reverse %", hist_markup:"Markup/Margin", hist_discount:"Discount",
+  hist_vat:"VAT/Tax", hist_business:"Business", hist_quick:"Quick Calc",
+  perGram:"গ্রাম", perKg:"কেজি", perLitre:"লিটার", perMl:"মিলিলিটার", perPiece:"টি", perDozen:"ডজন", perMeter:"মিটার", perFeet:"ফিট",
+},
+en:{
+  appName:"Smart Hisab", appTag:"Everyday Purchase, Sale & Market Calculator",
+  navHome:"Home", navQuick:"Calculator", navHistory:"History", navSettings:"Settings",
+  searchPlaceholder:"Search history...",
+  todayCalc:"Today's Calculations", todayProfit:"Today's Profit", todayLoss:"Today's Loss", mostUsed:"Most Used",
+  recent:"Recent Calculations", allCalculators:"All Calculators",
+  cancel:"Cancel", resetConfirm:"Reset Everything", resetTitle:"Reset everything?",
+  resetDesc:"Do you want to reset all settings, history and saved data? This cannot be undone.",
+  footerTag:"Everyday calculation made simple.",
+  calculate:"Calculate", copy:"Copy", share:"Share", print:"Print", copied:"Copied!",
+  clearAll:"Clear All", noHistory:"No calculations yet", deleteAll:"Delete All",
+  formula:"Formula & Steps", example:"Example",
+  errNumber:"Please enter a valid number.", errRequired:"This field is required.", errZero:"Value cannot be zero or negative.", errPercent:"Percentage must be less than 100.",
+  settingsAppearance:"Appearance", settingsLight:"Light Mode", settingsDark:"Dark Mode", settingsSystem:"System",
+  settingsLanguage:"Language", settingsPrecision:"Decimal Precision", settingsCurrency:"Currency",
+  settingsSound:"Sound", settingsVibration:"Vibration", settingsAnimation:"Animation",
+  settingsReset:"Reset Everything", settingsTitle:"Settings",
+  favAdd:"Added to favorites", favRemove:"Removed from favorites",
+  toastDone:"Calculation complete",
+  m_title:"Market / Weight Calculator", m_desc:"Find the exact price for any quantity",
+  m_totalPrice:"Total Price (৳)", m_totalQty:"Total Quantity", m_reqQty:"Quantity You Want",
+  m_resultLabel:"Price Will Be",
+  u_title:"Unit Price Calculator", u_desc:"Find the price per unit",
+  u_totalPrice:"Total Price (৳)", u_qty:"Total Quantity/Count", u_resultLabel:"Price Per Unit",
+  pu_title:"Find Purchase Price", pu_desc:"Get purchase price from selling price & profit/loss %",
+  pu_sell:"Selling Price (৳)", pu_percent:"Percentage (%)", pu_resultLabel:"Purchase Price",
+  se_title:"Find Selling Price", se_desc:"Get selling price from purchase price & profit/loss %",
+  se_cost:"Purchase Price (৳)", se_percent:"Percentage (%)", se_resultLabel:"Selling Price",
+  pl_title:"Profit / Loss Calculator", pl_desc:"Find profit or loss from purchase & selling price",
+  pl_cost:"Purchase Price (৳)", pl_sell:"Selling Price (৳)", pl_profit:"Profit", pl_loss:"Loss", pl_none:"No Profit/Loss (Equal)",
+  rv_title:"Reverse Percentage Calculator", rv_desc:"Calculate backwards from a known result",
+  rv_mode1:"Selling Price → Purchase Price", rv_mode2:"Purchase Price → Selling Price",
+  rv_known:"Known Price (৳)", rv_percent:"Percentage (%)", rv_resultLabel:"Result",
+  mk_title:"Markup & Profit Margin", mk_desc:"Understand markup vs margin clearly",
+  mk_cost:"Cost Price (৳)", mk_mode:"Calculation Type", mk_byMarkup:"By Markup %", mk_bySelling:"By Selling Price",
+  mk_markup:"Markup (%)", mk_sell:"Selling Price (৳)",
+  mk_sellLabel:"Selling Price", mk_profitLabel:"Profit", mk_marginLabel:"Profit Margin", mk_markupLabel:"Markup %",
+  di_title:"Discount Calculator", di_desc:"Find the final price after discount",
+  di_mode:"Calculation Type", di_forward:"From Original Price", di_reverse:"From Final Price",
+  di_original:"Original Price (৳)", di_final:"Final Price (৳)", di_percent:"Discount (%)",
+  di_resultLabel:"Final Price", di_amountLabel:"Discount Amount", di_origLabel:"Original Price",
+  di_multi:"Multiple Discounts (Sequential)", di_addDiscount:"+ Add Another Discount",
+  vt_title:"VAT / Tax Calculator", vt_desc:"Add or extract VAT from a price",
+  vt_mode:"Price Includes VAT", vt_excl:"Excludes (Add VAT)", vt_incl:"Includes (Extract VAT)",
+  vt_base:"Price (৳)", vt_percent:"VAT / Tax (%)", vt_resultLabel:"Final Price",
+  vt_vatLabel:"VAT Amount", vt_baseLabel:"Base Price",
+  bz_title:"Business Calculator", bz_desc:"Complete business profit-loss calculation",
+  bz_purchase:"Total Purchase (৳)", bz_transport:"Transport Cost (৳)", bz_packaging:"Packaging Cost (৳)", bz_other:"Other Cost (৳)",
+  bz_totalQty:"Total Quantity", bz_sellPrice:"Selling Price (per unit, ৳)", bz_qtySold:"Quantity Sold",
+  bz_totalCost:"Total Cost", bz_costPerUnit:"Cost Per Unit", bz_revenue:"Revenue", bz_grossProfit:"Gross Profit",
+  bz_netProfit:"Net Profit", bz_profitPercent:"Profit %", bz_remainStock:"Remaining Stock Value",
+  qc_title:"Quick Calculator", qc_desc:"For everyday quick calculations",
+  hist_market:"Market Calc", hist_unit:"Unit Price", hist_purchase:"Purchase Price", hist_selling:"Selling Price",
+  hist_profitloss:"Profit/Loss", hist_reverse:"Reverse %", hist_markup:"Markup/Margin", hist_discount:"Discount",
+  hist_vat:"VAT/Tax", hist_business:"Business", hist_quick:"Quick Calc",
+  perGram:"gram", perKg:"kg", perLitre:"litre", perMl:"ml", perPiece:"pc", perDozen:"dozen", perMeter:"meter", perFeet:"feet",
+}};
+
+/* ============================= STATE ============================= */
+const DEFAULT_SETTINGS = { theme:"dark", lang:"bn", precision:2, currency:"BDT", sound:true, vibration:true, animation:true };
+let settings = loadJSON("sh_settings", DEFAULT_SETTINGS);
+let history_ = loadJSON("sh_history", []);
+let favorites = loadJSON("sh_favorites", []);
+let currentView = "home";
+let currentCalcType = null;
+
+function loadJSON(key, fallback){ try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } }
+function saveJSON(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+function t(key){ return (I18N[settings.lang] && I18N[settings.lang][key]) || I18N.bn[key] || key; }
+
+/* ============================= CALC DEFS ============================= */
+const CALC_TYPES = [
+  {id:"market", icon:"🛒", titleKey:"m_title", descKey:"m_desc"},
+  {id:"profitloss", icon:"📊", titleKey:"pl_title", descKey:"pl_desc"},
+  {id:"discount", icon:"🏷️", titleKey:"di_title", descKey:"di_desc"},
+];
+
+const UNITS = {
+  weight:[["kg",1000],["gram",1]],
+  volume:[["litre",1000],["ml",1]],
+  count:[["piece",1],["dozen",12]],
+  length:[["meter",1],["feet",0.3048]]
+};
+const ALL_UNITS = [
+  {v:"kg", g:1000, k:"perKg"}, {v:"gram", g:1, k:"perGram"},
+  {v:"litre", g:1000, k:"perLitre"}, {v:"ml", g:1, k:"perMl"},
+  {v:"piece", g:1, k:"perPiece"}, {v:"dozen", g:12, k:"perDozen"},
+  {v:"meter", g:1, k:"perMeter"}, {v:"feet", g:0.3048, k:"perFeet"},
+];
+function unitGroup(u){
+  if(u==="kg"||u==="gram") return "weight";
+  if(u==="litre"||u==="ml") return "volume";
+  if(u==="piece"||u==="dozen") return "count";
+  return "length";
+}
+
+/* ============================= NUMBER HELPERS ============================= */
+function fmt(num){
+  if(!isFinite(num)) return "—";
+  let p = settings.precision;
+  if(p === "auto" || p === undefined || p === null){
+    // auto: up to 2 decimals, trim trailing zeros
+    let r = Math.round(num*100)/100;
+    return r.toLocaleString('en-US', {maximumFractionDigits:2});
+  }
+  p = parseInt(p);
+  return num.toLocaleString('en-US', {minimumFractionDigits:p, maximumFractionDigits:p});
+}
+function money(num){ return "৳ " + fmt(num); }
+function parseSmart(str){
+  if(str===null||str===undefined) return NaN;
+  let s = String(str).trim();
+  s = s.replace(/৳/g,"").replace(/,/g,"").trim();
+  // convert bangla digits if any
+  const bnDigits = "০১২৩৪৫৬৭৮৯";
+  s = s.replace(/[০-৯]/g, d => bnDigits.indexOf(d));
+  if(s==="") return NaN;
+  const n = parseFloat(s);
+  return isNaN(n) ? NaN : n;
+}
+
+/* ============================= TOAST / VIBRATE / SOUND ============================= */
+let toastTimer;
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 2200);
+}
+function vibrate(ms){ if(settings.vibration && navigator.vibrate){ try{navigator.vibrate(ms);}catch(e){} } }
+let audioCtx;
+function beep(){
+  if(!settings.sound) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type="sine"; o.frequency.value=880; g.gain.value=0.04;
+    o.connect(g); g.connect(audioCtx.destination); o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.12);
+    o.stop(audioCtx.currentTime+0.13);
+  }catch(e){}
+}
+
+/* ============================= HISTORY ============================= */
+function addHistory(type, inputSummary, resultSummary, resultValue, extra){
+  const item = { id: Date.now()+"_"+Math.random().toString(36).slice(2,7), type, inputSummary, resultSummary, resultValue: resultValue||0, extra: extra||{}, ts: Date.now() };
+  history_.unshift(item);
+  if(history_.length > 300) history_.pop();
+  saveJSON("sh_history", history_);
+}
+function deleteHistoryItem(id){ history_ = history_.filter(h=>h.id!==id); saveJSON("sh_history", history_); renderHistory(); }
+function clearHistory(){ history_ = []; saveJSON("sh_history", history_); renderHistory(); }
+
+/* ============================= THEME / LANG ============================= */
+function applyTheme(){
+  let th = settings.theme;
+  if(th === "system"){ th = window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark":"light"; }
+  document.body.setAttribute('data-theme', th);
+  document.getElementById('themeToggle').textContent = th==="dark" ? "🌙":"☀️";
+  document.querySelector('meta[name=theme-color]').setAttribute('content', th==="dark" ? "#0b1330":"#eef3fb");
+}
+function applyLang(){
+  document.documentElement.lang = settings.lang;
+  document.body.classList.toggle('lang-en', settings.lang==="en");
+  document.getElementById('langToggle').textContent = settings.lang==="bn" ? "EN":"বাং";
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent = t(el.getAttribute('data-i18n')); });
+}
+function applyAnim(){ document.body.classList.toggle('no-anim', !settings.animation); }
+
+/* ============================= NAV ============================= */
+function navTo(view){
+  currentView = view; currentCalcType = null;
+  document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('active', b.dataset.nav===view));
+  render();
+  window.scrollTo({top:0, behavior: settings.animation ? 'smooth':'auto'});
+}
+document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click', ()=>{
+  navTo(b.dataset.nav);
+}));
+function openCalc(id){
+  if(!CALC_TYPES.find(c=>c.id===id)) id = CALC_TYPES[0].id;
+  currentView='calc'; currentCalcType=id;
+  document.querySelectorAll('[data-nav]').forEach(b=>b.classList.remove('active'));
+  render();
+  window.scrollTo({top:0, behavior: settings.animation ? 'smooth':'auto'});
+}
+
+/* ============================= RENDER ROOT ============================= */
+function render(){
+  const app = document.getElementById('app');
+  applyLang();
+  if(currentView==='home') app.innerHTML = renderHome();
+  else if(currentView==='history') app.innerHTML = renderHistoryView();
+  else if(currentView==='settings') app.innerHTML = renderSettingsView();
+  else if(currentView==='calc') app.innerHTML = renderCalcView(currentCalcType);
+  applyLang();
+  attachViewEvents();
+}
+
+/* ---------- HOME ---------- */
+function todaysStats(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todays = history_.filter(h=>h.ts >= today.getTime());
+  let profit=0, loss=0;
+  todays.forEach(h=>{
+    if(h.extra && typeof h.extra.profit === 'number'){
+      if(h.extra.profit >= 0) profit += h.extra.profit; else loss += Math.abs(h.extra.profit);
+    }
+  });
+  const counts = {};
+  history_.forEach(h=>{ counts[h.type]=(counts[h.type]||0)+1; });
+  let mostUsed = "—";
+  let max=0;
+  Object.keys(counts).forEach(k=>{ if(counts[k]>max){max=counts[k]; mostUsed=k;} });
+  const ct = CALC_TYPES.find(c=>c.id===mostUsed);
+  return { count: todays.length, profit, loss, mostUsed: ct ? t(ct.titleKey) : "—" };
+}
+function renderHome(){
+  const stats = todaysStats();
+  const showSummary = history_.length>0;
+  const favs = CALC_TYPES.filter(c=>favorites.includes(c.id));
+  const recents = history_.slice(0,8);
+  let html = "";
+  if(showSummary){
+    html += `<div class="summary-grid">
+      <div class="glass summary-box"><div class="val">${stats.count}</div><div class="lbl">${t('todayCalc')}</div></div>
+      <div class="glass summary-box"><div class="val" style="color:var(--profit)">${money(stats.profit)}</div><div class="lbl">${t('todayProfit')}</div></div>
+      <div class="glass summary-box"><div class="val" style="color:var(--danger)">${money(stats.loss)}</div><div class="lbl">${t('todayLoss')}</div></div>
+      <div class="glass summary-box"><div class="val" style="font-size:13px;">${stats.mostUsed}</div><div class="lbl">${t('mostUsed')}</div></div>
+    </div>`;
+  }
+  if(favs.length){
+    html += `<div class="section-title">⭐ ${t('recent')==="Recent Calculations"?"Favorites":"পছন্দের তালিকা"}</div>
+    <div class="grid-cards">${favs.map(cardHTML).join("")}</div>`;
+  }
+  if(recents.length){
+    html += `<div class="section-title">${t('recent')}</div>
+    <div class="recent-row">${recents.map(h=>`
+      <div class="glass recent-chip" data-hist-id="${h.id}">
+        <div class="rc-type">${t('hist_'+h.type) || h.type}</div>
+        <div class="rc-res">${h.resultSummary}</div>
+      </div>`).join("")}</div>`;
+  }
+  html += `<div class="section-title">${t('allCalculators')}</div>
+  <div class="grid-cards">${CALC_TYPES.map(cardHTML).join("")}</div>`;
+  return html;
+}
+function cardHTML(c){
+  const isFav = favorites.includes(c.id);
+  return `<div class="glass calc-card" data-open="${c.id}">
+    <div class="calc-icon">${c.icon}</div>
+    <div style="min-width:0;">
+      <h3>${t(c.titleKey)}</h3>
+      <p>${t(c.descKey)}</p>
+    </div>
+    <button class="fav-star ${isFav?'active':''}" data-fav="${c.id}" aria-label="favorite">★</button>
+  </div>`;
+}
+
+/* ---------- HISTORY VIEW ---------- */
+function renderHistoryView(searchQ){
+  searchQ = (searchQ||"").toLowerCase();
+  let items = history_;
+  if(searchQ) items = items.filter(h => (h.inputSummary+h.resultSummary+h.type).toLowerCase().includes(searchQ));
+  let html = `<div class="calc-header"><h2>🕘 ${t('navHistory')}</h2></div>`;
+  html += `<div class="field hist-search"><div class="input-wrap"><input type="text" id="histSearch" placeholder="${t('searchPlaceholder')}" value="${searchQ?searchQ:''}"></div></div>`;
+  if(history_.length===0){
+    html += `<div class="glass empty-state"><div class="es-icon">🗂️</div><div>${t('noHistory')}</div></div>`;
+    return html;
+  }
+  if(items.length===0){
+    html += `<div class="glass empty-state"><div class="es-icon">🔍</div><div>${t('noHistory')}</div></div>`;
+  } else {
+    html += items.map(h=>`
+      <div class="glass hist-item">
+        <div class="hi-icon">${(CALC_TYPES.find(c=>c.id===h.type)||{icon:'🧮'}).icon}</div>
+        <div class="hi-main">
+          <div class="hi-type">${t('hist_'+h.type)||h.type} · ${h.inputSummary}</div>
+          <div class="hi-res">${h.resultSummary}</div>
+          <div class="hi-time">${new Date(h.ts).toLocaleString(settings.lang==='bn'?'bn-BD':'en-US')}</div>
+        </div>
+        <button class="hi-del" data-del-hist="${h.id}">🗑️</button>
+      </div>`).join("");
+  }
+  html += `<div class="btn-row mt10"><button class="btn" id="clearHistBtn">${t('deleteAll')}</button></div>`;
+  return html;
+}
+
+/* ---------- SETTINGS VIEW ---------- */
+function renderSettingsView(){
+  return `<div class="narrow-wrap"><div class="calc-header"><h2>⚙️ ${t('settingsTitle')}</h2></div>
+  <div class="glass panel">
+    <div class="settings-row">
+      <div><div class="sr-label">${t('settingsAppearance')}</div></div>
+    </div>
+    <div class="seg" style="margin:6px 0 14px;">
+      <button data-theme-set="light" class="${settings.theme==='light'?'active':''}">☀️ ${t('settingsLight')}</button>
+      <button data-theme-set="dark" class="${settings.theme==='dark'?'active':''}">🌙 ${t('settingsDark')}</button>
+      <button data-theme-set="system" class="${settings.theme==='system'?'active':''}">🖥️ ${t('settingsSystem')}</button>
+    </div>
+    <div class="settings-row"><div class="sr-label">${t('settingsLanguage')}</div></div>
+    <div class="seg" style="margin:6px 0 14px;">
+      <button data-lang-set="bn" class="${settings.lang==='bn'?'active':''}">বাংলা</button>
+      <button data-lang-set="en" class="${settings.lang==='en'?'active':''}">English</button>
+    </div>
+    <div class="settings-row"><div class="sr-label">${t('settingsPrecision')}</div></div>
+    <div class="seg" style="margin:6px 0 14px;">
+      ${[0,1,2,3,"auto"].map(p=>`<button data-prec-set="${p}" class="${String(settings.precision)===String(p)?'active':''}">${p==='auto'?'Auto':p}</button>`).join("")}
+    </div>
+    <div class="settings-row"><div class="sr-label">${t('settingsCurrency')}</div><div class="sr-sub">৳ BDT</div></div>
+    <div class="settings-row">
+      <div><div class="sr-label">${t('settingsSound')}</div></div>
+      <label class="switch"><input type="checkbox" id="soundSw" ${settings.sound?'checked':''}><span class="slider"></span></label>
+    </div>
+    <div class="settings-row">
+      <div><div class="sr-label">${t('settingsVibration')}</div></div>
+      <label class="switch"><input type="checkbox" id="vibSw" ${settings.vibration?'checked':''}><span class="slider"></span></label>
+    </div>
+    <div class="settings-row">
+      <div><div class="sr-label">${t('settingsAnimation')}</div></div>
+      <label class="switch"><input type="checkbox" id="animSw" ${settings.animation?'checked':''}><span class="slider"></span></label>
+    </div>
+  </div>
+  <div style="text-align:center;"><button class="reset-link" id="openResetModal">🗑️ ${t('settingsReset')}</button></div></div>`;
+}
+
+/* ============================= CALCULATOR VIEW ROUTER ============================= */
+function renderCalcView(id){
+  const meta = CALC_TYPES.find(c=>c.id===id) || CALC_TYPES[0];
+  if(!CALC_TYPES.find(c=>c.id===id)) id = meta.id;
+  const isFav = favorites.includes(id);
+  let inner = "";
+  if(id==="market") inner = tplMarket();
+  else if(id==="profitloss") inner = tplProfitLoss();
+  else if(id==="discount") inner = tplDiscount();
+  {
+    const calcBtnHTML = `<div class="btn-row" style="margin:2px 2px 16px;"><button class="btn btn-primary" id="calcNowBtn" style="width:100%; padding:15px;">🧮 ${t('calculate')}</button></div>`;
+    inner = inner.replace('<div id="resultArea"></div>', calcBtnHTML + '<div id="resultArea"></div>');
+  }
+  return `<div class="narrow-wrap"><div class="calc-header">
+    <button class="back-btn" id="calcBack">←</button>
+    <div style="flex:1;">
+      <h2>${meta.icon} ${t(meta.titleKey)}</h2>
+      <div class="sub">${t(meta.descKey)}</div>
+    </div>
+    <button class="fav-star ${isFav?'active':''}" data-fav="${id}" aria-label="favorite" style="margin-left:0;">★</button>
+  </div>${inner}</div>`;
+}
+
+/* ============================= FIELD HELPER ============================= */
+function field(label, id, placeholder, opts){
+  opts = opts || {};
+  return `<div class="field" id="fwrap_${id}">
+    <label for="${id}">${label}</label>
+    <div class="input-wrap"><input type="text" inputmode="decimal" id="${id}" placeholder="${placeholder||''}" autocomplete="off"></div>
+    <div class="err-msg" id="err_${id}"></div>
+  </div>`;
+}
+function unitField(label, idVal, idUnit, placeholder, defaultUnit){
+  const opts = ALL_UNITS.map(u=>`<option value="${u.v}" ${u.v===defaultUnit?'selected':''}>${t(u.k)}</option>`).join("");
+  return `<div class="field has-unit" id="fwrap_${idVal}">
+    <label for="${idVal}">${label}</label>
+    <div class="input-wrap">
+      <input type="text" inputmode="decimal" id="${idVal}" placeholder="${placeholder||''}" autocomplete="off">
+      <select class="unit-select" id="${idUnit}">${opts}</select>
+    </div>
+    <div class="err-msg" id="err_${idVal}"></div>
+  </div>`;
+}
+
+/* ============================= VALIDATION ============================= */
+function validateField(id, value, opts){
+  opts = opts || {};
+  const wrap = document.getElementById('fwrap_'+id);
+  const errEl = document.getElementById('err_'+id);
+  const inputWrap = wrap ? wrap.querySelector('.input-wrap') : null;
+  let msg = "";
+  if(value===""||value===undefined||value===null||isNaN(value)) msg = t('errNumber');
+  else if(opts.nonNegative && value < 0) msg = t('errZero');
+  else if(opts.positive && value <= 0) msg = t('errZero');
+  else if(opts.maxPercent && value >= 100) msg = t('errPercent');
+  if(msg){
+    if(inputWrap) inputWrap.classList.add('err');
+    if(errEl){ errEl.textContent = msg; errEl.classList.add('show'); }
+    return false;
+  } else {
+    if(inputWrap) inputWrap.classList.remove('err');
+    if(errEl){ errEl.textContent=""; errEl.classList.remove('show'); }
+    return true;
+  }
+}
+function clearFieldError(id){
+  const wrap = document.getElementById('fwrap_'+id);
+  if(!wrap) return;
+  const inputWrap = wrap.querySelector('.input-wrap');
+  const errEl = document.getElementById('err_'+id);
+  if(inputWrap) inputWrap.classList.remove('err');
+  if(errEl){ errEl.textContent=""; errEl.classList.remove('show'); }
+}
+
+/* ============================= RESULT RENDER ============================= */
+function resultHTML(opts){
+  // opts: {label, value, valueClass, sub, extras:[{v,l}], formula, id}
+  const cls = opts.valueClass||"";
+  return `<div class="glass result-card ${cls}" id="resultBox">
+    <div class="result-label">${opts.label}</div>
+    <div class="result-value ${cls}">${opts.value}</div>
+    ${opts.sub?`<div class="result-sub">${opts.sub}</div>`:""}
+    ${opts.extras&&opts.extras.length?`<div class="result-extra">${opts.extras.map(e=>`<div class="ex"><div class="v">${e.v}</div><div class="l">${e.l}</div></div>`).join("")}</div>`:""}
+    ${opts.formula?`<div class="formula-box">${opts.formula}</div>`:""}
+    <div class="result-actions">
+      <button class="btn" id="copyResultBtn">📋 ${t('copy')}</button>
+      <button class="btn" id="shareResultBtn">📤 ${t('share')}</button>
+      <button class="btn" id="printResultBtn">🖨️ ${t('print')}</button>
+    </div>
+  </div>`;
+}
+let lastCopyText = "";
+function bindResultActions(copyText){
+  lastCopyText = copyText;
+  const c = document.getElementById('copyResultBtn');
+  const s = document.getElementById('shareResultBtn');
+  const p = document.getElementById('printResultBtn');
+  if(c) c.onclick = ()=>{
+    navigator.clipboard && navigator.clipboard.writeText(lastCopyText).then(()=>{ toast(t('copied')); vibrate(15); }).catch(()=>{ fallbackCopy(lastCopyText); });
+    if(!navigator.clipboard) fallbackCopy(lastCopyText);
+  };
+  if(s) s.onclick = ()=>{
+    if(navigator.share){ navigator.share({title:"Smart Hisab", text:lastCopyText}).catch(()=>{}); }
+    else { fallbackCopy(lastCopyText); toast(t('copied')); }
+  };
+  if(p) p.onclick = ()=>{
+    try{
+      const ifr = document.createElement('iframe');
+      ifr.style.position='fixed'; ifr.style.right='0'; ifr.style.bottom='0'; ifr.style.width='0'; ifr.style.height='0'; ifr.style.border='0';
+      document.body.appendChild(ifr);
+      const doc = ifr.contentWindow && ifr.contentWindow.document;
+      if(!doc) throw new Error('no-doc');
+      doc.open();
+      doc.write(`<html><head><title>Smart Hisab</title><style>body{font-family:sans-serif;padding:40px;text-align:center;}h2{font-size:28px;}</style></head><body><h1>Smart Hisab</h1><h2>${lastCopyText.replace(/\n/g,'<br>')}</h2></body></html>`);
+      doc.close();
+      setTimeout(()=>{
+        try{ ifr.contentWindow.focus(); ifr.contentWindow.print(); }catch(e){}
+        setTimeout(()=>{ if(ifr.parentNode) ifr.parentNode.removeChild(ifr); }, 500);
+      }, 100);
+    }catch(e){
+      fallbackCopy(lastCopyText);
+      toast(t('printUnsupported') || (settings.lang==='bn' ? 'এই ব্রাউজারে প্রিন্ট সমর্থিত নয়, কপি করা হয়েছে' : 'Print not supported here, copied instead'));
+    }
+  };
+}
+function fallbackCopy(txt){
+  const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta);
+  ta.select(); try{ document.execCommand('copy'); toast(t('copied')); }catch(e){} document.body.removeChild(ta);
+}
+
+/* ============================= TEMPLATES + LOGIC ============================= */
+
+/* ---- 1. Market/Weight ---- */
+function tplMarket(){
+  return `<div class="glass panel">
+    ${field(t('m_totalPrice'),'mk_totalPrice','যেমন: ৮০০')}
+    ${unitField(t('m_totalQty'),'mk_totalQty','mk_totalUnit','যেমন: ১',"kg")}
+    ${unitField(t('m_reqQty'),'mk_reqQty','mk_reqUnit','যেমন: ৩০০',"gram")}
+  </div>
+  <div id="resultArea"></div>`;
+}
+function calcMarketLive(){
+  const tp = parseSmart(val('mk_totalPrice'));
+  const tq = parseSmart(val('mk_totalQty'));
+  const tu = val('mk_totalUnit');
+  const rq = parseSmart(val('mk_reqQty'));
+  const ru = val('mk_reqUnit');
+  clearFieldError('mk_totalPrice'); clearFieldError('mk_totalQty'); clearFieldError('mk_reqQty');
+  if(isNaN(tp)||isNaN(tq)||isNaN(rq)){ document.getElementById('resultArea').innerHTML=""; return; }
+  let ok = true;
+  if(!validateField('mk_totalPrice', tp, {positive:true})) ok=false;
+  if(!validateField('mk_totalQty', tq, {positive:true})) ok=false;
+  if(!validateField('mk_reqQty', rq, {positive:true})) ok=false;
+  if(!ok){ document.getElementById('resultArea').innerHTML=""; return; }
+  if(unitGroup(tu) !== unitGroup(ru)){
+    document.getElementById('resultArea').innerHTML = `<div class="glass panel" style="color:var(--danger); text-align:center;">${t('errNumber')}</div>`;
+    return;
+  }
+  const tuInfo = ALL_UNITS.find(u=>u.v===tu), ruInfo = ALL_UNITS.find(u=>u.v===ru);
+  const totalBase = tq * tuInfo.g;
+  const reqBase = rq * ruInfo.g;
+  const pricePerBase = tp / totalBase;
+  const result = pricePerBase * reqBase;
+  const html = resultHTML({
+    label: t('m_resultLabel'),
+    value: money(result),
+    sub: `${fmt(rq)} ${t(ruInfo.k)}`,
+    formula: `${fmt(tp)} ÷ ${fmt(totalBase)} × ${fmt(reqBase)} = ${fmt(result)}`
+  });
+  document.getElementById('resultArea').innerHTML = html;
+  bindResultActions(`${fmt(rq)} ${t(ruInfo.k)} = ${money(result)}`);
+  addHistory('market', `${fmt(tq)}${t(tuInfo.k)}=৳${fmt(tp)}, ${fmt(rq)}${t(ruInfo.k)}`, money(result), result);
+}
+
+/* ---- 2. Profit/Loss ---- */
+function tplProfitLoss(){
+  return `<div class="glass panel">
+    ${field(t('pl_cost'),'plr_cost','যেমন: ৮০০')}
+    ${field(t('pl_sell'),'plr_sell','যেমন: ১০০০')}
+  </div><div id="resultArea"></div>`;
+}
+function calcProfitLossLive(){
+  const cost = parseSmart(val('plr_cost')), sell = parseSmart(val('plr_sell'));
+  clearFieldError('plr_cost'); clearFieldError('plr_sell');
+  if(isNaN(cost)||isNaN(sell)){ document.getElementById('resultArea').innerHTML=""; return; }
+  let ok=true;
+  if(!validateField('plr_cost', cost, {positive:true})) ok=false;
+  if(!validateField('plr_sell', sell, {nonNegative:true})) ok=false;
+  if(!ok){ document.getElementById('resultArea').innerHTML=""; return; }
+  const diff = sell - cost;
+  const pct = (diff/cost)*100;
+  let label, cls;
+  if(diff>0){ label=t('pl_profit'); cls='profit'; }
+  else if(diff<0){ label=t('pl_loss'); cls='loss'; }
+  else { label=t('pl_none'); cls=''; }
+  const html = resultHTML({
+    label, value: money(Math.abs(diff)), valueClass:cls,
+    extras:[{v:fmt(Math.abs(pct))+"%", l: settings.lang==='bn'?'শতাংশ':'Percent'}],
+    formula:`${fmt(sell)} − ${fmt(cost)} = ${fmt(diff)}  |  (${fmt(diff)} ÷ ${fmt(cost)}) × 100 = ${fmt(pct)}%`
+  });
+  document.getElementById('resultArea').innerHTML = html;
+  bindResultActions(`${label} = ৳${fmt(Math.abs(diff))} (${fmt(Math.abs(pct))}%)`);
+  addHistory('profitloss', `৳${fmt(cost)} → ৳${fmt(sell)}`, `${label} ৳${fmt(Math.abs(diff))}`, diff, {profit:diff});
+}
+
+/* ---- 3. Discount ---- */
+let multiDiscounts = [""];
+function tplDiscount(){
+  return `<div class="glass panel">
+    <div class="field"><label>${t('di_mode')}</label>
+      <div class="seg"><button data-dmode="forward" class="active">${t('di_forward')}</button><button data-dmode="reverse">${t('di_reverse')}</button></div>
+    </div>
+    <div id="di_priceField">${field(t('di_original'),'di_price','যেমন: ২০০০')}</div>
+    ${field(t('di_percent'),'di_percent','যেমন: ১৫')}
+    <div class="settings-row" style="border:none; padding:6px 0;">
+      <div class="sr-label" style="font-size:13px;">${t('di_multi')}</div>
+      <label class="switch"><input type="checkbox" id="multiDiscToggle"><span class="slider"></span></label>
+    </div>
+    <div id="multiDiscArea" class="hidden mt10"></div>
+  </div><div id="resultArea"></div>`;
+}
+function renderMultiDisc(){
+  const area = document.getElementById('multiDiscArea');
+  area.innerHTML = multiDiscounts.map((v,i)=>`
+    <div class="multi-discount-item">
+      <div class="input-wrap"><input type="text" inputmode="decimal" class="multiDiscInput" data-idx="${i}" placeholder="% ছাড় ${i+1}" value="${v}"></div>
+      ${multiDiscounts.length>1?`<button data-rm-disc="${i}">✕</button>`:''}
+    </div>`).join("") + `<button class="btn btn-ghost" id="addDiscBtn" style="width:100%;">${t('di_addDiscount')}</button>`;
+  area.querySelectorAll('.multiDiscInput').forEach(inp=>inp.addEventListener('input', e=>{
+    multiDiscounts[parseInt(e.target.dataset.idx)] = e.target.value; calcDiscountLive();
+  }));
+  area.querySelectorAll('[data-rm-disc]').forEach(b=>b.addEventListener('click', e=>{
+    multiDiscounts.splice(parseInt(e.target.dataset.rmDisc),1); renderMultiDisc(); calcDiscountLive();
+  }));
+  document.getElementById('addDiscBtn').onclick = ()=>{ multiDiscounts.push(""); renderMultiDisc(); };
+}
+function swapDiscountPriceField(){
+  const dmode = document.querySelector('#app [data-dmode].active')?.dataset.dmode || 'forward';
+  const priceFieldWrap = document.getElementById('di_priceField');
+  priceFieldWrap.innerHTML = field(dmode==='forward'?t('di_original'):t('di_final'), 'di_price', dmode==='forward'?'যেমন: ২০০০':'যেমন: ১৭০০');
+  document.getElementById('di_price').addEventListener('input', calcDiscountLive);
+}
+function calcDiscountLive(){
+  const dmode = document.querySelector('#app [data-dmode].active')?.dataset.dmode || 'forward';
+  const useMulti = document.getElementById('multiDiscToggle')?.checked;
+  const price = parseSmart(val('di_price'));
+  clearFieldError('di_price');
+  if(isNaN(price)){ document.getElementById('resultArea').innerHTML=""; return; }
+  if(!validateField('di_price', price, {positive:true})){ document.getElementById('resultArea').innerHTML=""; return; }
+
+  document.getElementById('di_percent').closest('.field').style.display = useMulti ? 'none':'block';
+  document.getElementById('multiDiscArea').classList.toggle('hidden', !useMulti);
+  let pctList = [];
+  if(useMulti){
+    pctList = multiDiscounts.map(v=>parseSmart(v)).filter(v=>!isNaN(v) && v>0);
+    if(pctList.length===0){ document.getElementById('resultArea').innerHTML=""; return; }
+  } else {
+    const pct = parseSmart(val('di_percent'));
+    clearFieldError('di_percent');
+    if(isNaN(pct)){ document.getElementById('resultArea').innerHTML=""; return; }
+    if(!validateField('di_percent', pct, {nonNegative:true, maxPercent:true})){ document.getElementById('resultArea').innerHTML=""; return; }
+    pctList = [pct];
+  }
+
+  let original, final, totalDiscount, steps=[];
+  if(dmode==='forward'){
+    original = price; let running = price;
+    pctList.forEach(p=>{ const d = running*p/100; steps.push(`${fmt(running)} − ${fmt(p)}% = ${fmt(running-d)}`); running -= d; });
+    final = running; totalDiscount = original-final;
+  } else {
+    final = price; let running = price;
+    // reverse sequential: divide backwards through discounts in reverse order
+    [...pctList].reverse().forEach(p=>{ running = running/(1-p/100); });
+    original = running; totalDiscount = original-final;
+  }
+  const html = resultHTML({
+    label: t('di_resultLabel'), value: money(final),
+    extras:[{v:money(totalDiscount), l:t('di_amountLabel')}, {v:money(original), l:t('di_origLabel')}],
+    formula: steps.length ? steps.join('\n') : `${fmt(original)} − ${fmt(totalDiscount)} = ${fmt(final)}`
+  });
+  document.getElementById('resultArea').innerHTML = html;
+  bindResultActions(`${t('di_origLabel')}=${money(original)}, ${t('di_resultLabel')}=${money(final)}`);
+  addHistory('discount', `৳${fmt(original)}, ${pctList.map(p=>fmt(p)+'%').join('+')}`, money(final), final);
+}
+
+/* ============================= INPUT HELPERS ============================= */
+function val(id){ const el = document.getElementById(id); return el ? el.value.trim() : ""; }
+function attachInputListeners(id, cb){
+  const el = document.getElementById(id);
+  if(el && !el._bound){ el.addEventListener('input', cb); el._bound = true; }
+}
+
+/* ============================= VIEW EVENT BINDING ============================= */
+function attachViewEvents(){
+  // dashboard cards
+  document.querySelectorAll('[data-open]').forEach(c=>{
+    c.addEventListener('click', (e)=>{ if(e.target.closest('[data-fav]')) return; openCalc(c.dataset.open); });
+  });
+  document.querySelectorAll('[data-fav]').forEach(b=>{
+    b.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const id = b.dataset.fav;
+      if(favorites.includes(id)){ favorites = favorites.filter(f=>f!==id); toast(t('favRemove')); }
+      else { favorites.push(id); toast(t('favAdd')); }
+      saveJSON('sh_favorites', favorites);
+      vibrate(10);
+      render();
+    });
+  });
+  document.querySelectorAll('[data-hist-id]').forEach(c=>{
+    c.addEventListener('click', ()=>{
+      const item = history_.find(h=>h.id===c.dataset.histId);
+      if(item) openCalc(item.type);
+    });
+  });
+  const backBtn = document.getElementById('calcBack');
+  if(backBtn) backBtn.addEventListener('click', ()=>navTo('home'));
+
+  // history view
+  const histSearch = document.getElementById('histSearch');
+  if(histSearch) histSearch.addEventListener('input', (e)=>{ document.getElementById('app').innerHTML = renderHistoryView(e.target.value); applyLang(); attachViewEvents(); document.getElementById('histSearch').focus(); document.getElementById('histSearch').selectionStart = document.getElementById('histSearch').value.length; });
+  document.querySelectorAll('[data-del-hist]').forEach(b=>b.addEventListener('click', ()=>{ deleteHistoryItem(b.dataset.delHist); vibrate(10); }));
+  const clearHistBtn = document.getElementById('clearHistBtn');
+  if(clearHistBtn) clearHistBtn.addEventListener('click', ()=>{ clearHistory(); toast(t('clearAll')); });
+
+  // settings view
+  document.querySelectorAll('[data-theme-set]').forEach(b=>b.addEventListener('click', ()=>{ settings.theme=b.dataset.themeSet; saveJSON('sh_settings',settings); applyTheme(); render(); }));
+  document.querySelectorAll('[data-lang-set]').forEach(b=>b.addEventListener('click', ()=>{ settings.lang=b.dataset.langSet; saveJSON('sh_settings',settings); render(); }));
+  document.querySelectorAll('[data-prec-set]').forEach(b=>b.addEventListener('click', ()=>{ settings.precision=b.dataset.precSet; saveJSON('sh_settings',settings); render(); }));
+  const soundSw = document.getElementById('soundSw'); if(soundSw) soundSw.addEventListener('change', e=>{ settings.sound=e.target.checked; saveJSON('sh_settings',settings); });
+  const vibSw = document.getElementById('vibSw'); if(vibSw) vibSw.addEventListener('change', e=>{ settings.vibration=e.target.checked; saveJSON('sh_settings',settings); });
+  const animSw = document.getElementById('animSw'); if(animSw) animSw.addEventListener('change', e=>{ settings.animation=e.target.checked; saveJSON('sh_settings',settings); applyAnim(); });
+  const openResetBtn = document.getElementById('openResetModal');
+  if(openResetBtn) openResetBtn.addEventListener('click', ()=>document.getElementById('resetModal').classList.add('show'));
+
+  // calculator-specific
+  bindCalcEvents(currentCalcType);
+}
+
+function bindCalcEvents(id){
+  if(!id) return;
+  document.querySelectorAll('#app .seg button:not([data-mmode]):not([data-dmode])').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      b.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      vibrate(6);
+      runCalc(id);
+    });
+  });
+  const inputs = document.querySelectorAll('#app .panel input, #app .panel select');
+  inputs.forEach(inp=>{ inp.addEventListener('input', ()=>runCalc(id)); inp.addEventListener('change', ()=>runCalc(id)); });
+
+  if(id==='discount'){
+    renderMultiDisc();
+    const toggle = document.getElementById('multiDiscToggle');
+    if(toggle) toggle.addEventListener('change', ()=>calcDiscountLive());
+    const dmodeButtons = document.querySelectorAll('#app [data-dmode]');
+    dmodeButtons.forEach(b=>b.addEventListener('click', ()=>{
+      dmodeButtons.forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      vibrate(6);
+      swapDiscountPriceField();
+      calcDiscountLive();
+    }));
+  }
+  const calcNowBtn = document.getElementById('calcNowBtn');
+  if(calcNowBtn){
+    calcNowBtn.addEventListener('click', ()=>{
+      vibrate(15); beep();
+      runCalc(id);
+      const rb = document.getElementById('resultBox');
+      if(rb) rb.scrollIntoView({behavior: settings.animation ? 'smooth':'auto', block:'center'});
+      else toast(t('errNumber'));
+    });
+  }
+  // initial run for pre-filled/defaults
+  runCalc(id);
+}
+function runCalc(id){
+  if(id==='market') calcMarketLive();
+  else if(id==='profitloss') calcProfitLossLive();
+  else if(id==='discount') calcDiscountLive();
+}
+
+/* ============================= GLOBAL EVENTS ============================= */
+document.getElementById('langToggle').addEventListener('click', ()=>{ settings.lang = settings.lang==='bn'?'en':'bn'; saveJSON('sh_settings',settings); render(); });
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  settings.theme = document.body.getAttribute('data-theme')==='dark' ? 'light':'dark';
+  saveJSON('sh_settings',settings); applyTheme();
+});
+document.getElementById('settingsBtn').addEventListener('click', ()=>navTo('settings'));
+document.getElementById('resetCancel').addEventListener('click', ()=>document.getElementById('resetModal').classList.remove('show'));
+document.getElementById('resetConfirm').addEventListener('click', ()=>{
+  localStorage.removeItem('sh_settings'); localStorage.removeItem('sh_history'); localStorage.removeItem('sh_favorites');
+  settings = {...DEFAULT_SETTINGS}; history_ = []; favorites = [];
+  document.getElementById('resetModal').classList.remove('show');
+  applyTheme(); applyAnim(); navTo('home'); toast(t('resetConfirm'));
+});
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{ if(settings.theme==='system') applyTheme(); });
+
+/* keyboard support */
+document.addEventListener('keydown', (e)=>{
+  if(e.key==='Escape'){ document.getElementById('resetModal').classList.remove('show'); }
+});
+
+/* ============================= INIT ============================= */
+applyTheme(); applyAnim();
+render();
+</script>
+</body>
+</html>
